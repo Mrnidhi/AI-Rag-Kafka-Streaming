@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: AI RAG Platform API
+  description: RAG pipeline with document ingestion, embedding, and query
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: RAG Gateway (local)
+  - url: http://localhost:8000/api/v1
+    description: Ingestion service (local)
+  - url: http://localhost:8001/api/v1
+    description: Embedding service (local)
+
+paths:
+  /query:
+    post:
+      summary: Ask a question (RAG pipeline)
+      operationId: query
+      tags: [RAG]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+      responses:
+        '200':
+          description: Answer with sources
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResponse'
+        '400':
+          description: Invalid request
+        '500':
+          description: Server error
+
+  /ingest:
+    post:
+      summary: Ingest a document
+      operationId: ingest
+      tags: [Ingestion]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestRequest'
+      responses:
+        '202':
+          description: Document accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResponse'
+
+  /search:
+    post:
+      summary: Semantic search
+      operationId: search
+      tags: [Search]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+
+components:
+  schemas:
+    QueryRequest:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+        contextLimit:
+          type: integer
+          default: 5
+
+    QueryResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
+        latencyMs:
+          type: integer
+        tokensUsed:
+          type: integer
+
+    IngestRequest:
+      type: object
+      required: [title, content]
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        source:
+          type: string
+
+    IngestResponse:
+      type: object
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        chunks:
+          type: integer
+        status:
+          type: string
+
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+        top_k:
+          type: integer
+          default: 5
+        threshold:
+          type: number
+          default: 0.7
+
+    SearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
+        total:
+          type: integer
+
+    Source:
+      type: object
+      properties:
+        chunkId:
+          type: string
+        documentId:
+          type: string
+        content:
+          type: string
+        score:
+          type: number
