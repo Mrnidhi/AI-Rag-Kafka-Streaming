@@ -1,0 +1,33 @@
+server:
+  port: ${API_PORT:8080}
+
+spring:
+  application:
+    name: rag-gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+rag:
+  embedding-service-url: ${EMBEDDING_SERVICE_URL:http://localhost:8001}
+  llm:
+    provider: ${LLM_PROVIDER:openai}
+    api-key: ${OPENAI_API_KEY:}
+    model: ${LLM_MODEL:gpt-4}
+    max-tokens: ${LLM_MAX_TOKENS:1024}
+    temperature: ${LLM_TEMPERATURE:0.3}
+  retriever:
+    top-k: ${RAG_TOP_K:5}
+    threshold: ${RAG_SIMILARITY_THRESHOLD:0.7}
+  cache:
+    enabled: ${CACHE_ENABLED:true}
+    ttl-seconds: ${CACHE_TTL:3600}
+  rate-limit:
+    requests-per-minute: ${RATE_LIMIT_PER_MINUTE:60}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
